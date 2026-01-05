@@ -1,0 +1,56 @@
+<!DOCTYPE html>
+<html>
+<head><title>Import Hostels</title></head>
+<body>
+<h1>Importing Hostels...</h1>
+<div id="status"></div>
+
+<script type="module">
+import { initializeApp } from "https://www.gstatic.com/firebasejs/12.7.0/firebase-app.js";
+import { getFirestore, doc, setDoc } from "https://www.gstatic.com/firebasejs/12.7.0/firebase-firestore.js";
+
+const firebaseConfig = {
+  apiKey: "AIzaSyBAeUoj-jOOv1dHFf3r98K44GeGhJnE1T8",
+  authDomain: "hostelmate-na2715.firebaseapp.com",
+  projectId: "hostelmate-na2715",
+  storageBucket: "hostelmate-na2715.firebasestorage.app",
+  messagingSenderId: "322572880442",
+  appId: "1:322572880442:web:87c7273991016f80e2c303"
+};
+
+const app = initializeApp(firebaseConfig);
+const db = getFirestore(app);
+
+const hostels = {
+  "Abdul Sattar Edhi Hall": {totalRooms: 95, roomCapacity: 2, freeRooms: 95, totalStudents: 0, gender: "Male"},
+  "Al-Zohra Hall": {totalRooms: 70, roomCapacity: 2, freeRooms: 70, totalStudents: 0, gender: "Female"},
+  "Allama Iqbal Hall": {totalRooms: 100, roomCapacity: 2, freeRooms: 100, totalStudents: 0, gender: "Male"},
+  "Bachelor Hall": {totalRooms: 50, roomCapacity: 1, freeRooms: 50, totalStudents: 0, gender: "Other"},
+  "C-Hall": {totalRooms: 60, roomCapacity: 2, freeRooms: 60, totalStudents: 0, gender: "Female"},
+  "Faculty Hostels": {totalRooms: 40, roomCapacity: 1, freeRooms: 40, totalStudents: 0, gender: "Other"},
+  "Khadijah Hall": {totalRooms: 80, roomCapacity: 2, freeRooms: 80, totalStudents: 0, gender: "Female"},
+  "Khalid Hall": {totalRooms: 75, roomCapacity: 2, freeRooms: 75, totalStudents: 0, gender: "Male"},
+  "Muhammad Bin Qasim Hall": {totalRooms: 110, roomCapacity: 2, freeRooms: 110, totalStudents: 0, gender: "Male"},
+  "New Girls Hostel": {totalRooms: 100, roomCapacity: 2, freeRooms: 100, totalStudents: 0, gender: "Female"},
+  "S. Mahmood Gaznavi Hall": {totalRooms: 90, roomCapacity: 2, freeRooms: 90, totalStudents: 0, gender: "Male"},
+  "Sir Syed Hall": {totalRooms: 120, roomCapacity: 2, freeRooms: 120, totalStudents: 0, gender: "Male"},
+  "Tariq Hall": {totalRooms: 85, roomCapacity: 2, freeRooms: 85, totalStudents: 0, gender: "Male"},
+  "Umar Hall": {totalRooms: 50, roomCapacity: 2, freeRooms: 50, totalStudents: 0, gender: "Female"},
+  "Zubaid Hall": {totalRooms: 80, roomCapacity: 2, freeRooms: 80, totalStudents: 0, gender: "Male"}
+};
+
+const status = document.getElementById('status');
+
+for (const [name, data] of Object.entries(hostels)) {
+  try {
+    await setDoc(doc(db, "hostels", name), data);
+    status.innerHTML += `<p style="color:green;">✅ ${name} imported</p>`;
+  } catch (error) {
+    status.innerHTML += `<p style="color:red;">❌ ${name} failed: ${error.message}</p>`;
+  }
+}
+
+status.innerHTML += `<h2 style="color:blue;">🎉 DONE! All hostels imported!</h2>`;
+</script>
+</body>
+</html>

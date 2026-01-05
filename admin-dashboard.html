@@ -1,0 +1,1240 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Admin Dashboard - HostelMate</title>
+<link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+<style>
+@import url('https://fonts.googleapis.com/css2?family=Inter:wght@400;500;700&display=swap');
+
+body { margin:0; font-family:'Inter', sans-serif; background:#0b1e3c; color:#fff; }
+
+/* Sidebar */
+.sidebar {
+    position: fixed;
+    top:0; left:0;
+    width:250px;
+    height:100%;
+    background: rgba(10,25,50,0.95);
+    backdrop-filter: blur(10px);
+    display:flex;
+    flex-direction:column;
+    box-shadow: 5px 0 15px rgba(0,0,0,0.3);
+}
+.sidebar h2{ text-align:center;padding:20px 0;border-bottom:1px solid rgba(255,255,255,0.2);margin:0;}
+.sidebar ul{list-style:none;padding:0;margin:0;flex:1;}
+.sidebar ul li{
+    padding:15px 20px;
+    cursor:pointer;
+    border-bottom:1px solid rgba(255,255,255,0.1);
+    display:flex;
+    align-items:center;
+    gap:10px;
+    transition:0.3s;
+    border-radius:10px 0 0 10px;
+}
+.sidebar ul li:hover{background: rgba(255,255,255,0.1); box-shadow:0 0 10px #0ff;}
+.sidebar ul li.logout {
+    margin-top: 30px;
+    margin-bottom: 20px;
+    background: linear-gradient(135deg, #ff758c, #ff7eb3);
+    justify-content:center;
+    border-radius:25px;
+    padding:10px 0;
+    font-weight:bold;
+}
+.sidebar ul li.logout:hover{
+    background: linear-gradient(135deg, #ff7eb3, #ff758c);
+    box-shadow: 0 0 15px #ff7eb3, 0 0 25px #ff758c;
+    transform: translateY(-2px);
+}
+.sidebar ul li .badge{
+    background:red;color:#000;border-radius:50%;width:20px;height:20px;text-align:center;line-height:20px;font-size:12px;
+}
+
+/* Main content */
+.main-content{ margin-left:250px; padding:20px; }
+
+/* Header */
+.header{display:flex;align-items:center;justify-content:space-between;margin-bottom:20px;}
+.header .logo { height:70px; border-radius: 12px; box-shadow: 0 0 15px #0ff; transition: 0.3s; }
+.header h1{margin-left:20px;font-size:24px;color:#0ff;}
+
+/* Profile pic edit */
+.profile-section{position:relative;}
+.profile-pic-wrapper{position:relative;display:inline-block;}
+.profile-pic{width:60px;height:60px;border-radius:50%;object-fit:cover;border:2px solid #0ff;transition:0.3s;}
+.profile-pic:hover{box-shadow:0 0 15px #0ff;}
+.edit-pen{position:absolute;bottom:-5px;right:-5px;background:#0ff;color:#000;border-radius:50%;padding:5px;cursor:pointer;font-size:12px;border:1px solid #fff;}
+
+/* Profile Modal */
+#profileModal{display:none;position:fixed;top:0;left:0;width:100%;height:100%;background:rgba(0,0,0,0.6);backdrop-filter: blur(5px);justify-content:center;align-items:center;z-index:1000;}
+#profileModal .modal-content{
+    background: rgba(255,255,255,0.1);
+    backdrop-filter: blur(15px);
+    padding:30px;
+    border-radius:20px;
+    text-align:center;
+    box-shadow:0 0 20px #0ff;
+}
+#profileModal img{width:120px;height:120px;border-radius:50%;object-fit:cover;margin-bottom:20px;border:3px solid #0ff;}
+
+/* Cards */
+.dashboard-cards{display:flex;gap:20px;flex-wrap:wrap;margin-bottom:20px;}
+.card{
+    background: rgba(255,255,255,0.1);
+    backdrop-filter: blur(10px);
+    flex:1 1 200px;
+    padding:20px;
+    border-radius:15px;
+    box-shadow:0 4px 15px rgba(0,255,255,0.2);
+    transition:0.3s;
+    cursor:pointer;
+    position:relative;
+}
+.card:hover{box-shadow:0 0 25px #0ff;}
+.card h3{margin:0;font-size:14px;color:#c0eaff;}
+.card p{font-size:24px;margin:5px 0 0 0;font-weight:700;}
+.card .edit-card{ position:absolute; top:10px; right:10px; font-size:16px; cursor:pointer; color:#0ff; padding:5px; border-radius:50%; border:1px solid #0ff; transition:0.3s; }
+.card .edit-card:hover{ box-shadow:0 0 10px #0ff,0 0 20px #0ff; transform: translateY(-2px); }
+
+/* Debug info */
+.debug-info{
+    background: rgba(255,255,255,0.05);
+    padding:10px;
+    border-radius:10px;
+    margin-bottom:15px;
+    font-size:12px;
+    color:#c0eaff;
+}
+
+/* Tables */
+table{width:100%;border-collapse:collapse;background:rgba(255,255,255,0.1);border-radius:15px;overflow:hidden;backdrop-filter:blur(5px);margin-top:20px;}
+table th, table td{padding:12px;text-align:left;border-bottom:1px solid rgba(255,255,255,0.2);color:#c0eaff;}
+table th{background:rgba(255,255,255,0.05);}
+table tr:hover{background: rgba(0,255,255,0.1);}
+
+/* Tabs */
+.tab{display:none;}
+.tab.active{display:block;}
+
+/* Floating add button */
+.add-student-btn{
+    position: fixed;
+    bottom:30px;
+    right:40px;
+    width:60px;height:60px;border-radius:50%;
+    background: rgba(255,255,255,0.1);
+    backdrop-filter: blur(10px);
+    color: #0ff;
+    font-size:30px;
+    text-align:center;
+    line-height:60px;
+    cursor:pointer;
+    box-shadow:0 0 10px #0ff;
+    transition:0.3s;
+}
+.add-student-btn:hover{
+    box-shadow:0 0 20px #0ff,0 0 40px #0ff;
+    transform: translateY(-2px);
+}
+
+/* Message box for lost & found */
+.lost-box{margin-top:10px;padding:10px;background:rgba(0,255,255,0.1);border-radius:10px;display:flex;justify-content:space-between;align-items:center;}
+.lost-box button{padding:5px 10px;border-radius:12px;border:none;background: rgba(255,255,255,0.1);backdrop-filter: blur(10px);color:#0ff;font-weight:600;transition:0.3s;cursor:pointer;box-shadow:0 0 5px rgba(0,255,255,0.3);}
+.lost-box button:hover{background: rgba(0,255,255,0.2);color:#000;box-shadow:0 0 15px #0ff,0 0 25px #0ff;transform:translateY(-2px);}
+
+/* General buttons (glassmorphism) */
+button{ padding: 8px 16px; border: none; border-radius: 12px; cursor: pointer; background: rgba(255, 255, 255, 0.1); backdrop-filter: blur(10px); color: #0ff; font-weight: 600; transition: all 0.3s ease; box-shadow: 0 0 5px rgba(0, 255, 255, 0.3);}
+button:hover{ background: rgba(0, 255, 255, 0.2); color: #000; box-shadow: 0 0 15px #0ff, 0 0 25px #0ff; transform: translateY(-2px);}
+input[type=text], textarea{ padding:5px; border-radius:12px; border:none; background: rgba(255,255,255,0.1); color:#0ff; backdrop-filter:blur(10px); outline:none; width:70%;}
+
+/* Mess Schedule Table */
+#messTable th, #messTable td{padding:10px;border-bottom:1px solid rgba(255,255,255,0.2);color:#c0eaff;}
+#messTable th{background:rgba(255,255,255,0.05);}
+.add-row-btn{margin-top:10px;}
+
+/* Delete button for mess rows */
+.delete-mess-btn{
+    padding:5px 10px;
+    background:rgba(255,0,0,0.3);
+    color:#fff;
+    border:none;
+    border-radius:8px;
+    cursor:pointer;
+    transition:0.3s;
+}
+.delete-mess-btn:hover{
+    background:rgba(255,0,0,0.6);
+    box-shadow:0 0 10px #ff0000;
+}
+
+/* Student Allotment Table */
+#allotmentTable th, #allotmentTable td{
+    padding:12px;text-align:left;border-bottom:1px solid rgba(255,255,255,0.2);color:#c0eaff;
+}
+#allotmentTable th{background:rgba(255,255,255,0.05);}
+#allotmentTable tr:hover{background: rgba(0,255,255,0.1);}
+.send-email-btn{padding:5px 12px;border-radius:12px;background: rgba(255,255,255,0.1);backdrop-filter:blur(10px);color:#0ff;cursor:pointer;transition:0.3s;}
+.send-email-btn:hover{background: rgba(0,255,255,0.2);color:#000;}
+
+/* Room selection modal */
+#roomModal{display:none;position:fixed;top:0;left:0;width:100%;height:100%;background:rgba(0,0,0,0.6);backdrop-filter: blur(5px);justify-content:center;align-items:center;z-index:1000;}
+#roomModal .modal-content{
+    background: rgba(255,255,255,0.1);
+    backdrop-filter: blur(15px);
+    padding:30px;
+    border-radius:20px;
+    text-align:center;
+    box-shadow:0 0 20px #0ff;
+}
+#roomModal select{padding:10px;border-radius:12px;border:none;background: rgba(255,255,255,0.1);color:#0ff;outline:none;}
+#roomModal button{margin-top:10px;}
+</style>
+</head>
+<body>
+
+<div class="sidebar">
+    <h2>Admin Panel</h2>
+    <ul>
+        <li onclick="openTab('dashboard')"><i class="fas fa-tachometer-alt"></i> Dashboard</li>
+        <li onclick="openTab('students')"><i class="fas fa-user-graduate"></i> Student Management</li>
+        <li onclick="openTab('allotment')"><i class="fas fa-layer-group"></i> Student Allotment</li>
+        <li onclick="openTab('rooms')"><i class="fas fa-bed"></i> Room Management</li>
+        <li onclick="window.location.href='hostel-details.html'"><i class="fas fa-building"></i> Hostel Details</li>
+        <li onclick="openTab('lostfound')"><i class="fas fa-search"></i> Lost & Found <span class="badge" id="lostBadge">0</span></li>
+        <li onclick="openTab('complaints')"><i class="fas fa-exclamation-circle"></i> Complaints <span class="badge" id="complaintBadge">0</span></li>
+        <li onclick="openTab('notifications')"><i class="fas fa-bell"></i> Announcements</li>
+        <li onclick="openTab('mess')"><i class="fas fa-utensils"></i> Hostel Mess Schedule</li>
+        <li onclick="openTab('events')"><i class="fas fa-calendar-alt"></i> Hostel Events</li>
+        <li class="logout" onclick="logout()"><i class="fas fa-sign-out-alt"></i> Logout</li>
+    </ul>
+</div>
+
+<div class="main-content">
+    <div class="header">
+        <div style="display:flex;align-items:center">
+            <img src="https://i.ibb.co/LDWnBVWf/59e47443259fadca4151fd6273ac0ebd.jpg" class="logo">
+            <h1 id="welcomeText"></h1>
+        </div>
+        <div class="profile-section">
+            <div class="profile-pic-wrapper">
+                <img src="https://i.ibb.co/rGv71T90/3cae079ca0b9e55ec6bfc1b358c9b1e2.jpg" class="profile-pic" id="profilePic">
+                <i class="fas fa-pen edit-pen" id="editPen"></i>
+            </div>
+            <input type="file" id="uploadPic" style="display:none;">
+        </div>
+    </div>
+
+    <!-- Tabs -->
+    <div id="dashboard" class="tab active">
+        <div class="debug-info" id="debugInfo">⏳ Connecting to Firebase...</div>
+        <button onclick="window.testFirebaseConnection()" style="margin-bottom:15px;background:rgba(255,165,0,0.3);"><i class="fas fa-bug"></i> Test Firebase Connection</button>
+        <h2 id="yourHallName">Your Hall Name: Loading...</h2>
+        <button onclick="refreshDashboard()" style="margin-bottom:15px;"><i class="fas fa-sync-alt"></i> Refresh Data</button>
+        <div class="dashboard-cards">
+            <div class="card">
+                <h3>Total Students</h3>
+                <p id="totalStudents">Loading...</p>
+            </div>
+            <div class="card">
+                <h3>Total Rooms</h3>
+                <p id="totalRooms">Loading...</p>
+            </div>
+            <div class="card">
+                <h3>Free Rooms</h3>
+                <p id="freeRooms">Loading...</p>
+            </div>
+            <div class="card">
+                <h3>Lost Items</h3>
+                <p id="lostItems">3</p>
+                <i class="fas fa-pen edit-card" onclick="makeEditable('lostItems')"></i>
+            </div>
+        </div>
+        <h3>Other Admins in this Hall</h3>
+        <div id="otherAdmins" style="display:flex;gap:10px;"></div>
+    </div>
+
+    <!-- Student Management Tab -->
+    <div id="students" class="tab">
+        <h2>Student Management</h2>
+        <button onclick="refreshDashboard()" style="margin-bottom:15px;"><i class="fas fa-sync-alt"></i> Refresh</button>
+        <table id="studentTable">
+            <tr><th>Name</th><th>Father Name</th><th>CNIC</th><th>Room</th><th>Action</th></tr>
+            <tr><td colspan="5" style="text-align:center;">Loading students...</td></tr>
+        </table>
+    </div>
+
+    <!-- Student Allotment Tab -->
+    <div id="allotment" class="tab">
+        <h2>Student Allotment</h2>
+        <button onclick="refreshDashboard()" style="margin-bottom:15px;"><i class="fas fa-sync-alt"></i> Refresh</button>
+        <table id="allotmentTable">
+            <tr>
+                <th>Name</th>
+                <th>Father Name</th>
+                <th>CNIC</th>
+                <th>Phone No</th>
+                <th>Degree Type</th>
+                <th>Dep</th>
+                <th>Major</th>
+                <th>CGPA</th>
+                <th>Action</th>
+            </tr>
+            <tr><td colspan="9" style="text-align:center;">Loading pending students...</td></tr>
+        </table>
+    </div>
+
+    <!-- Rooms Tab -->
+    <div id="rooms" class="tab">
+        <h2>Room Management</h2>
+        <button onclick="refreshDashboard()" style="margin-bottom:15px;"><i class="fas fa-sync-alt"></i> Refresh</button>
+        <table id="roomTable">
+            <tr><th>Room No</th><th>Occupied Students</th><th>Free Space</th></tr>
+            <tr><td colspan="3" style="text-align:center;">Loading rooms...</td></tr>
+        </table>
+    </div>
+
+    <!-- Lost & Found Tab -->
+    <div id="lostfound" class="tab">
+        <h2>Lost & Found</h2>
+        <input type="text" id="lostInput" placeholder="Describe lost item...">
+        <button onclick="addLost()">Add</button>
+        <div id="lostList"></div>
+    </div>
+
+    <!-- Complaints Tab -->
+    <div id="complaints" class="tab">
+        <h2>Complaints</h2>
+        <table id="complaintTable">
+            <tr><th>Student</th><th>Complaint</th><th>Action</th></tr>
+        </table>
+    </div>
+
+    <!-- Announcements Tab -->
+    <div id="notifications" class="tab">
+        <h2>Announcements</h2>
+        <textarea placeholder="Write announcement..."></textarea><br>
+        <button onclick="sendAnnouncement()">Send</button>
+    </div>
+
+    <!-- Mess Tab -->
+    <div id="mess" class="tab">
+        <h2>Hostel Mess Schedule</h2>
+        <table id="messTable">
+            <tr>
+                <th>Day</th><th>Meal</th><th>Item</th><th>Total Cost</th><th>Time</th><th>Action</th>
+            </tr>
+        </table>
+        <button class="add-row-btn" onclick="addMessRow()">+ Add Row</button>
+    </div>
+
+    <!-- Events Tab -->
+    <div id="events" class="tab">
+        <h2>Hostel Events</h2>
+        <textarea id="eventInput" placeholder="Describe the event..." style="width:80%; height:100px;"></textarea><br><br>
+        <button onclick="postEvent()">Post Event</button>
+        <h3 style="margin-top:30px;">Posted Events:</h3>
+        <div id="eventList" style="margin-top:20px;"></div>
+    </div>
+
+</div>
+
+<!-- Room Selection Modal -->
+<div id="roomModal">
+    <div class="modal-content">
+        <h3>Select Room for <span id="modalStudentName"></span></h3>
+        <select id="availableRoomsSelect"></select><br>
+        <button onclick="confirmRoom()">Assign Room</button>
+        <button onclick="closeRoomModal()">Cancel</button>
+    </div>
+</div>
+
+<!-- Profile Modal -->
+<div id="profileModal">
+    <div class="modal-content">
+        <img src="https://i.ibb.co/rGv71T90/3cae079ca0b9e55ec6bfc1b358c9b1e2.jpg" id="modalPic">
+        <br>
+        <button onclick="document.getElementById('uploadPic').click()">Upload</button>
+        <button onclick="removeProfilePic()">Remove</button>
+        <button onclick="closeModal()">Back</button>
+    </div>
+</div>
+
+<script>
+// Admin Info
+var adminName = sessionStorage.getItem('adminName') || "Admin";
+var hostelCode = sessionStorage.getItem('hostelCode') || "C-Hall";
+var hallName = hostelCode;
+
+// Typewriter
+var welcomeText = "WELCOME " + adminName.toUpperCase() + "!";
+var typeIdx = 0;
+function typeWriter() {
+    if (typeIdx < welcomeText.length) {
+        document.getElementById("welcomeText").innerHTML += welcomeText.charAt(typeIdx);
+        typeIdx++;
+        setTimeout(typeWriter, 100);
+    }
+}
+typeWriter();
+
+// Profile modal
+var profilePic=document.getElementById('profilePic');
+var modal=document.getElementById('profileModal');
+var modalPic=document.getElementById('modalPic');
+var uploadPic=document.getElementById('uploadPic');
+
+document.getElementById('editPen').addEventListener('click',function(){
+    modal.style.display="flex"; 
+    modalPic.src=profilePic.src;
+});
+
+uploadPic.addEventListener('change',function(e){
+    var file=e.target.files[0];
+    if(file){
+        var reader=new FileReader();
+        reader.onload=function(){
+            profilePic.src=reader.result; 
+            modalPic.src=reader.result;
+        };
+        reader.readAsDataURL(file);
+    }
+}); 
+
+function closeModal(){
+    modal.style.display="none";
+}
+
+function removeProfilePic(){
+    var defaultPfp="https://i.ibb.co/rGv71T90/3cae079ca0b9e55ec6bfc1b358c9b1e2.jpg";
+    profilePic.src=defaultPfp;
+    modalPic.src=defaultPfp;
+}
+
+// Logout
+function logout(){ 
+    sessionStorage.removeItem('adminName'); 
+    sessionStorage.removeItem('adminEmail');
+    sessionStorage.removeItem('adminId');
+    sessionStorage.removeItem('hostelCode');
+    window.location.href="index.html"; 
+}
+
+// Tabs
+function openTab(tab){
+    var tabs = document.querySelectorAll('.tab');
+    for(var j=0; j<tabs.length; j++){
+        tabs[j].classList.remove('active');
+    }
+    document.getElementById(tab).classList.add('active');
+}
+
+// Dashboard cards editable
+function makeEditable(id){
+    var el=document.getElementById(id); 
+    el.setAttribute("contenteditable","true"); 
+    el.focus(); 
+    el.style.borderBottom="1px dashed #0ff";
+}
+
+// Lost & Found
+var lostItemsArr = JSON.parse(localStorage.getItem("lostItems") || "[]");
+
+function addLost(){ 
+    var desc=document.getElementById('lostInput').value; 
+    if(!desc) return; 
+    lostItemsArr.push(desc); 
+    localStorage.setItem("lostItems", JSON.stringify(lostItemsArr));
+    document.getElementById('lostInput').value=""; 
+    renderLost();
+}
+
+function renderLost(){
+    var list=document.getElementById('lostList'); 
+    list.innerHTML=""; 
+    for(var j=0; j<lostItemsArr.length; j++){
+        var item = lostItemsArr[j];
+        var div=document.createElement('div'); 
+        div.className="lost-box"; 
+        div.innerHTML='<span>'+item+'</span><button onclick="markFound('+j+')">Found</button>'; 
+        list.appendChild(div);
+    }
+    document.getElementById('lostBadge').innerText=lostItemsArr.length;
+    document.getElementById('lostItems').innerText=lostItemsArr.length;
+}
+
+function markFound(idx){
+    lostItemsArr.splice(idx,1); 
+    localStorage.setItem("lostItems", JSON.stringify(lostItemsArr));
+    renderLost();
+}
+
+renderLost();
+
+// Announcements
+function sendAnnouncement() {
+    var textarea = document.querySelector('#notifications textarea');
+    var text = textarea.value.trim();
+    if (!text) return alert("Please write an announcement!");
+    var announcements = JSON.parse(localStorage.getItem("announcements") || "[]");
+    announcements.push(text);
+    localStorage.setItem("announcements", JSON.stringify(announcements));
+    textarea.value = "";
+    alert("Announcement Sent!");
+    renderAdminAnnouncements();
+}
+
+function renderAdminAnnouncements() {
+    var tab = document.getElementById('notifications');
+    var oldList = tab.querySelector('ul');
+    if (oldList) oldList.remove();
+    var ul = document.createElement('ul');
+    ul.style.marginTop = "15px";
+    ul.style.listStyle = "disc";
+    ul.style.paddingLeft = "20px";
+    var announcements = JSON.parse(localStorage.getItem("announcements") || "[]");
+    for(var j=0; j<announcements.length; j++){
+        var li = document.createElement('li');
+        li.textContent = announcements[j];
+        ul.appendChild(li);
+    }
+    tab.appendChild(ul);
+}
+
+renderAdminAnnouncements();
+
+// Complaints
+var complaintsArr = [];
+
+function loadComplaintsFromStorage() {
+    var stored = JSON.parse(localStorage.getItem("complaints") || "[]");
+    complaintsArr = [];
+    for(var j=0; j<stored.length; j++){
+        complaintsArr.push({student: stored[j].student || "Student", complaint: stored[j].text});
+    }
+    renderComplaints();
+}
+
+function renderComplaints(){
+    var table=document.getElementById('complaintTable');
+    table.innerHTML='<tr><th>Student</th><th>Complaint</th><th>Action</th></tr>';
+    for(var j=0; j<complaintsArr.length; j++){
+        var c = complaintsArr[j];
+        var tr=document.createElement('tr');
+        tr.innerHTML='<td>'+c.student+'</td><td>'+c.complaint+'</td><td><button onclick="resolveComplaint('+j+')">Resolve</button></td>';
+        table.appendChild(tr);
+    }
+    document.getElementById('complaintBadge').innerText=complaintsArr.length;
+}
+
+function resolveComplaint(idx){
+    complaintsArr.splice(idx,1);
+    var stored = JSON.parse(localStorage.getItem("complaints")||"[]");
+    stored.splice(idx,1);
+    localStorage.setItem("complaints",JSON.stringify(stored));
+    renderComplaints();
+}
+
+loadComplaintsFromStorage();
+setInterval(loadComplaintsFromStorage,5000);
+
+// Mess Schedule
+var messArr=JSON.parse(localStorage.getItem("messArr") || "[]");
+
+function addMessRow(){
+    var day=prompt("Day");if(!day)return;
+    var meal=prompt("Meal"); if(!meal)return;
+    var item=prompt("Item"); if(!item)return;
+    var cost=prompt("Total Cost"); if(!cost)return;
+    var time=prompt("Time"); if(!time)return;
+    messArr.push({day:day,meal:meal,item:item,cost:cost,time:time});
+    localStorage.setItem("messArr", JSON.stringify(messArr));
+    renderMess();
+}
+
+function deleteMessRow(index){
+    if(confirm("Delete this mess schedule row?")){
+        messArr.splice(index, 1);
+        localStorage.setItem("messArr", JSON.stringify(messArr));
+        renderMess();
+    }
+}
+
+function renderMess(){
+    var table=document.getElementById('messTable');
+    table.innerHTML='<tr><th>Day</th><th>Meal</th><th>Item</th><th>Total Cost</th><th>Time</th><th>Action</th></tr>';
+    for(var j=0; j<messArr.length; j++){
+        var m = messArr[j];
+        var tr=document.createElement('tr'); 
+        tr.innerHTML='<td>'+m.day+'</td><td>'+m.meal+'</td><td>'+m.item+'</td><td>'+m.cost+'</td><td>'+m.time+'</td><td><button class="delete-mess-btn" onclick="deleteMessRow('+j+')">Delete</button></td>'; 
+        table.appendChild(tr);
+    }
+}
+
+renderMess();
+
+// Hostel Events
+function postEvent(){
+    var desc = document.getElementById('eventInput').value.trim(); 
+    if(!desc) {
+        alert("Please write an event description!");
+        return;
+    }
+    var eventsArr = JSON.parse(localStorage.getItem("hostelEvents") || "[]");
+    eventsArr.push(desc);
+    localStorage.setItem("hostelEvents", JSON.stringify(eventsArr));
+    document.getElementById('eventInput').value = ""; 
+    renderEvents();
+    alert("Event posted successfully!");
+}
+
+function renderEvents(){
+    var eventsArr = JSON.parse(localStorage.getItem("hostelEvents") || "[]");
+    var list = document.getElementById('eventList');
+    list.innerHTML = "";
+    if(eventsArr.length === 0){
+        list.innerHTML = "<p style='color:#c0eaff;'>No events posted yet.</p>";
+        return;
+    }
+    for(var j=0; j<eventsArr.length; j++){
+        var e = eventsArr[j];
+        var div = document.createElement('div');
+        div.className = "lost-box";
+        div.innerHTML = '<span>'+e+'</span><button onclick="deleteEvent('+j+')">Delete</button>';
+        list.appendChild(div);
+    }
+}
+
+function deleteEvent(idx){
+    if(confirm("Delete this event?")){
+        var eventsArr = JSON.parse(localStorage.getItem("hostelEvents") || "[]");
+        eventsArr.splice(idx, 1);
+        localStorage.setItem("hostelEvents", JSON.stringify(eventsArr));
+        renderEvents();
+    }
+}
+
+renderEvents();
+</script>
+
+<!-- FIREBASE INTEGRATION -->
+<script type="module">
+import { initializeApp } from "https://www.gstatic.com/firebasejs/12.7.0/firebase-app.js";
+import { getFirestore, doc, getDoc, collection, query, where, getDocs, updateDoc, increment } from "https://www.gstatic.com/firebasejs/12.7.0/firebase-firestore.js";
+
+const firebaseConfig = {
+  apiKey: "AIzaSyBAeUoj-jOOv1dHFf3r98K44GeGhJnE1T8",
+  authDomain: "hostelmate-na2715.firebaseapp.com",
+  projectId: "hostelmate-na2715",
+  storageBucket: "hostelmate-na2715.firebasestorage.app",
+  messagingSenderId: "322572880442",
+  appId: "1:322572880442:web:87c7273991016f80e2c303",
+  measurementId: "G-RFSWJL3ZDM"
+};
+
+const app = initializeApp(firebaseConfig);
+const db = getFirestore(app);
+
+let hostelCode = sessionStorage.getItem('hostelCode') || "C-Hall";
+
+// Try to normalize the hostel code
+function normalizeHostelCode(code) {
+  const normalized = code.trim();
+  return {
+    original: normalized,
+    withoutHall: normalized.replace(/\s*Hall\s*$/i, '').trim(),
+    lowercase: normalized.toLowerCase(),
+    lowercaseWithoutHall: normalized.replace(/\s*Hall\s*$/i, '').trim().toLowerCase()
+  };
+}
+
+const hostelVariations = normalizeHostelCode(hostelCode);
+
+console.log("🔍 Trying to find hostel with variations:", hostelVariations);
+
+// Update debug info
+function updateDebugInfo(message) {
+  const debugEl = document.getElementById('debugInfo');
+  if (debugEl) {
+    debugEl.innerHTML = message;
+    console.log("DEBUG:", message);
+  }
+}
+
+updateDebugInfo(`🔍 Searching for hostel: "${hostelCode}" | Also trying: "${hostelVariations.withoutHall}"`);
+
+document.getElementById('yourHallName').innerText = "Your Hall Name: " + hostelCode;
+
+// ==========================================
+// LIST ALL HOSTELS IN FIREBASE (DIAGNOSTIC)
+// ==========================================
+async function listAllHostels() {
+  try {
+    updateDebugInfo("📋 Scanning Firebase for all hostels...");
+    const hostelsRef = collection(db, "hostels");
+    const querySnapshot = await getDocs(hostelsRef);
+    
+    let hostelList = [];
+    querySnapshot.forEach((doc) => {
+      hostelList.push({
+        id: doc.id,
+        data: doc.data()
+      });
+    });
+    
+    console.log("🏨 All hostels in Firebase:", hostelList);
+    
+    let debugMessage = `📋 Found ${hostelList.length} hostels in Firebase:<br>`;
+    hostelList.forEach(h => {
+      debugMessage += `<br>• Document ID: "<strong>${h.id}</strong>"`;
+      if (h.data.name) debugMessage += ` | Name: "${h.data.name}"`;
+      if (h.data.totalStudents !== undefined) debugMessage += ` | Students: ${h.data.totalStudents}`;
+    });
+    debugMessage += `<br><br>🔍 Looking for: "<strong>${hostelCode}</strong>"`;
+    
+    updateDebugInfo(debugMessage);
+    return hostelList;
+    
+  } catch (error) {
+    console.error("❌ Error listing hostels:", error);
+    updateDebugInfo(`❌ Error accessing Firebase: ${error.message}`);
+    return [];
+  }
+}
+
+// Global variables
+window.students = [];
+window.roomsArr = [];
+window.allotmentStudents = [];
+window.currentHostelCode = hostelCode;
+
+// ==========================================
+// FIND HOSTEL DOCUMENT
+// ==========================================
+async function findHostelDocument() {
+  // First, list all hostels to see what's available
+  const allHostels = await listAllHostels();
+  
+  const attempts = [
+    hostelVariations.original,
+    hostelVariations.withoutHall,
+    hostelVariations.lowercase,
+    hostelVariations.lowercaseWithoutHall
+  ];
+  
+  // Try exact document ID matches
+  for (const attempt of attempts) {
+    try {
+      console.log("🔍 Trying hostel code:", attempt);
+      const hostelRef = doc(db, "hostels", attempt);
+      const hostelSnap = await getDoc(hostelRef);
+      
+      if (hostelSnap.exists()) {
+        console.log("✅ Found hostel with code:", attempt);
+        window.currentHostelCode = attempt;
+        updateDebugInfo(`✅ MATCH FOUND! Using document ID: "<strong>${attempt}</strong>"`);
+        return { ref: hostelRef, snap: hostelSnap, code: attempt };
+      }
+    } catch (error) {
+      console.warn("⚠️ Error checking:", attempt, error);
+    }
+  }
+  
+  // Try fuzzy matching against all hostels
+  console.log("🔍 Trying fuzzy match...");
+  for (const hostel of allHostels) {
+    const hostelId = hostel.id.toLowerCase().trim();
+    const hostelName = (hostel.data.name || '').toLowerCase().trim();
+    const searchTerm = hostelCode.toLowerCase().trim();
+    
+    if (hostelId.includes(searchTerm) || 
+        searchTerm.includes(hostelId) ||
+        hostelName.includes(searchTerm) ||
+        searchTerm.includes(hostelName)) {
+      
+      console.log("✅ Fuzzy match found:", hostel.id);
+      window.currentHostelCode = hostel.id;
+      const hostelRef = doc(db, "hostels", hostel.id);
+      const hostelSnap = await getDoc(hostelRef);
+      updateDebugInfo(`✅ FUZZY MATCH! Using: "<strong>${hostel.id}</strong>" (searched for "${hostelCode}")`);
+      return { ref: hostelRef, snap: hostelSnap, code: hostel.id };
+    }
+  }
+  
+  updateDebugInfo(`❌ NO MATCH FOUND for "${hostelCode}"<br><br>Please check:<br>1. Is the hostel document created in Firebase?<br>2. Does the document ID match exactly?<br>3. Check console for list of available hostels`);
+  return null;
+}
+
+// ==========================================
+// LOAD DASHBOARD DATA
+// ==========================================
+async function loadDashboardData() {
+  try {
+    updateDebugInfo("⏳ Loading dashboard data...");
+    
+    const hostelDoc = await findHostelDocument();
+    
+    if (hostelDoc && hostelDoc.snap.exists()) {
+      const hostelData = hostelDoc.snap.data();
+      
+      // Load rooms first
+      await loadHostelRooms();
+      
+      // Load students and count them
+      await loadHostelStudents();
+      
+      // Update dashboard with ACTUAL counts
+      const actualStudentCount = window.students.length;
+      const totalRooms = hostelData.totalRooms || window.roomsArr.length || 0;
+      const freeRoomsCount = window.roomsArr.filter(r => r.free > 0).length;
+      
+      document.getElementById('totalStudents').textContent = actualStudentCount;
+      document.getElementById('totalRooms').textContent = totalRooms;
+      document.getElementById('freeRooms').textContent = freeRoomsCount;
+      
+      console.log("✅ Dashboard loaded - Students:", actualStudentCount, "Rooms:", totalRooms);
+      updateDebugInfo(`✅ Dashboard loaded | Students: ${actualStudentCount} | Total Rooms: ${totalRooms} | Free Rooms: ${freeRoomsCount}`);
+      
+      // Update hostel document with actual counts if different
+      if (hostelData.totalStudents !== actualStudentCount) {
+        console.log("📝 Updating hostel document with actual student count...");
+        try {
+          await updateDoc(hostelDoc.ref, {
+            totalStudents: actualStudentCount
+          });
+        } catch (err) {
+          console.warn("Could not update hostel document:", err);
+        }
+      }
+      
+    } else {
+      console.warn("⚠️ Hostel not found");
+      document.getElementById('totalStudents').textContent = "0";
+      document.getElementById('totalRooms').textContent = "0";
+      document.getElementById('freeRooms').textContent = "0";
+      updateDebugInfo(`⚠️ Hostel "${hostelCode}" not found. Check Firebase document ID.`);
+    }
+    
+  } catch (error) {
+    console.error("❌ Error loading dashboard:", error);
+    updateDebugInfo(`❌ Error: ${error.message}`);
+  }
+}
+
+// ==========================================
+// LOAD STUDENTS
+// ==========================================
+async function loadHostelStudents() {
+  try {
+    console.log("📚 Loading students for hostel:", window.currentHostelCode || hostelCode);
+    
+    const variations = [
+      window.currentHostelCode,
+      hostelVariations.original,
+      hostelVariations.withoutHall,
+      hostelCode
+    ];
+    
+    // Remove duplicates
+    const uniqueVariations = [...new Set(variations.filter(v => v))];
+    console.log("🔍 Will try these hostel codes for students:", uniqueVariations);
+    
+    window.students = [];
+    
+    for (const variation of uniqueVariations) {
+      try {
+        console.log(`🔍 Querying students with hostel = "${variation}"`);
+        
+        const studentsQuery = query(
+          collection(db, "students"),
+          where("hostel", "==", variation)
+        );
+        
+        const querySnapshot = await getDocs(studentsQuery);
+        console.log(`📊 Found ${querySnapshot.size} students for "${variation}"`);
+        
+        querySnapshot.forEach((docSnap) => {
+          const data = docSnap.data();
+          const existingStudent = window.students.find(s => s.id === docSnap.id);
+          
+          if (!existingStudent) {
+            console.log(`✅ Adding student: ${data.name} (ID: ${docSnap.id})`);
+            window.students.push({
+              id: docSnap.id,
+              name: data.name || "N/A",
+              father: data.fatherName || "N/A",
+              cnic: data.cnic || "N/A",
+              room: data.roomNumber || "Not Assigned"
+            });
+          }
+        });
+        
+        if (querySnapshot.size > 0) {
+          console.log(`✅ Successfully loaded students with hostel code: "${variation}"`);
+          break;
+        }
+      } catch (err) {
+        console.warn(`⚠️ Failed to query with "${variation}":`, err);
+      }
+    }
+    
+    // If still no students, try to list ALL students to diagnose
+    if (window.students.length === 0) {
+      console.log("⚠️ No students found. Checking ALL students in database...");
+      try {
+        const allStudentsQuery = query(collection(db, "students"));
+        const allSnapshot = await getDocs(allStudentsQuery);
+        console.log(`📊 Total students in database: ${allSnapshot.size}`);
+        
+        const hostelCounts = {};
+        allSnapshot.forEach((doc) => {
+          const hostel = doc.data().hostel || "NO_HOSTEL";
+          hostelCounts[hostel] = (hostelCounts[hostel] || 0) + 1;
+        });
+        
+        console.log("🏨 Students by hostel:", hostelCounts);
+        console.log(`❓ Your hostel code "${hostelCode}" needs to match one of these exactly`);
+      } catch (err) {
+        console.error("❌ Could not list all students:", err);
+      }
+    }
+    
+    console.log(`✅ Total students loaded: ${window.students.length}`);
+    renderStudents();
+    
+  } catch (error) {
+    console.error("❌ Error loading students:", error);
+  }
+}
+
+window.renderStudents = function() {
+  const table = document.getElementById('studentTable');
+  table.innerHTML = '<tr><th>Name</th><th>Father Name</th><th>CNIC</th><th>Room</th><th>Action</th></tr>';
+  
+  if (window.students.length === 0) {
+    const tr = document.createElement('tr');
+    tr.innerHTML = '<td colspan="5" style="text-align:center;color:#c0eaff;">No students found in ' + hostelCode + '</td>';
+    table.appendChild(tr);
+    return;
+  }
+  
+  for (let j = 0; j < window.students.length; j++) {
+    const s = window.students[j];
+    const tr = document.createElement('tr');
+    tr.innerHTML = '<td>' + s.name + '</td><td>' + s.father + '</td><td>' + s.cnic + '</td><td>' + s.room + '</td><td><button onclick="viewStudent(\'' + s.id + '\')">View</button></td>';
+    table.appendChild(tr);
+  }
+};
+
+window.viewStudent = function(studentId) {
+  const student = window.students.find(s => s.id === studentId);
+  if (student) {
+    alert('Student Details:\n\nName: ' + student.name + '\nFather: ' + student.father + '\nCNIC: ' + student.cnic + '\nRoom: ' + student.room);
+  }
+};
+
+// ==========================================
+// LOAD ROOMS
+// ==========================================
+async function loadHostelRooms() {
+  try {
+    const hostelDoc = await findHostelDocument();
+    
+    if (!hostelDoc || !hostelDoc.snap.exists()) {
+      console.warn("⚠️ Cannot load rooms - hostel not found");
+      return;
+    }
+    
+    const hostelData = hostelDoc.snap.data();
+    const totalRooms = hostelData.totalRooms || 0;
+    const roomCapacity = hostelData.roomCapacity || 2;
+    
+    const variations = [
+      window.currentHostelCode,
+      hostelVariations.original,
+      hostelVariations.withoutHall
+    ];
+    
+    let studentsSnap = null;
+    
+    for (const variation of variations) {
+      try {
+        const studentsQuery = query(
+          collection(db, "students"),
+          where("hostel", "==", variation)
+        );
+        studentsSnap = await getDocs(studentsQuery);
+        if (!studentsSnap.empty) break;
+      } catch (err) {
+        console.warn("Failed to query students with:", variation);
+      }
+    }
+    
+    const roomOccupancy = {};
+    if (studentsSnap) {
+      studentsSnap.forEach((docSnap) => {
+        const data = docSnap.data();
+        if (data.roomNumber) {
+          if (!roomOccupancy[data.roomNumber]) {
+            roomOccupancy[data.roomNumber] = 0;
+          }
+          roomOccupancy[data.roomNumber]++;
+        }
+      });
+    }
+    
+    window.roomsArr = [];
+    for (let roomNum = 1; roomNum <= totalRooms; roomNum++) {
+      const occupied = roomOccupancy[roomNum] || 0;
+      const free = Math.max(0, roomCapacity - occupied);
+      
+      window.roomsArr.push({
+        no: roomNum.toString(),
+        total: occupied,
+        free: free
+      });
+    }
+    
+    console.log(`✅ Loaded ${window.roomsArr.length} rooms`);
+    renderRooms();
+    
+  } catch (error) {
+    console.error("❌ Error loading rooms:", error);
+  }
+}
+
+window.renderRooms = function() {
+  const table = document.getElementById('roomTable');
+  table.innerHTML = '<tr><th>Room No</th><th>Occupied Students</th><th>Free Space</th></tr>';
+  
+  if (window.roomsArr.length === 0) {
+    const tr = document.createElement('tr');
+    tr.innerHTML = '<td colspan="3" style="text-align:center;color:#c0eaff;">No rooms available</td>';
+    table.appendChild(tr);
+    return;
+  }
+  
+  for (let j = 0; j < window.roomsArr.length; j++) {
+    const r = window.roomsArr[j];
+    const tr = document.createElement('tr');
+    tr.innerHTML = '<td>Room ' + r.no + '</td><td>' + r.total + '</td><td style="color:' + (r.free > 0 ? '#0ff' : '#ff758c') + '">' + r.free + '</td>';
+    table.appendChild(tr);
+  }
+};
+
+// ==========================================
+// LOAD ALLOTMENT STUDENTS
+// ==========================================
+async function loadAllotmentStudents() {
+  try {
+    console.log("📋 Loading pending students for allotment...");
+    
+    const variations = [
+      window.currentHostelCode,
+      hostelVariations.original,
+      hostelVariations.withoutHall,
+      hostelCode
+    ];
+    
+    // Remove duplicates
+    const uniqueVariations = [...new Set(variations.filter(v => v))];
+    console.log("🔍 Will try these hostel codes for pending students:", uniqueVariations);
+    
+    window.allotmentStudents = [];
+    
+    for (const variation of uniqueVariations) {
+      try {
+        console.log(`🔍 Querying pending students with hostel = "${variation}" AND status = "pending"`);
+        
+        const studentsQuery = query(
+          collection(db, "students"),
+          where("hostel", "==", variation),
+          where("status", "==", "pending")
+        );
+        
+        const querySnapshot = await getDocs(studentsQuery);
+        console.log(`📊 Found ${querySnapshot.size} pending students for "${variation}"`);
+        
+        querySnapshot.forEach((docSnap) => {
+          const data = docSnap.data();
+          const existingStudent = window.allotmentStudents.find(s => s.id === docSnap.id);
+          
+          if (!existingStudent) {
+            console.log(`✅ Adding pending student: ${data.name} (ID: ${docSnap.id})`);
+            window.allotmentStudents.push({
+              id: docSnap.id,
+              name: data.name || "N/A",
+              father: data.fatherName || "N/A",
+              cnic: data.cnic || "N/A",
+              phone: data.phone || "N/A",
+              degree: data.degreeType || "N/A",
+              dep: data.department || "N/A",
+              major: data.major || "N/A",
+              cgpa: data.cgpa || "N/A"
+            });
+          }
+        });
+        
+        if (querySnapshot.size > 0) {
+          console.log(`✅ Successfully loaded pending students with hostel code: "${variation}"`);
+          break;
+        }
+      } catch (err) {
+        console.warn(`⚠️ Failed to query pending students with "${variation}":`, err);
+      }
+    }
+    
+    console.log(`✅ Total pending students loaded: ${window.allotmentStudents.length}`);
+    renderAllotmentStudents();
+    
+  } catch (error) {
+    console.error("❌ Error loading allotment students:", error);
+  }
+}
+
+window.renderAllotmentStudents = function() {
+  const table = document.getElementById('allotmentTable');
+  table.innerHTML = '<tr><th>Name</th><th>Father Name</th><th>CNIC</th><th>Phone No</th><th>Degree Type</th><th>Dep</th><th>Major</th><th>CGPA</th><th>Action</th></tr>';
+  
+  if (window.allotmentStudents.length === 0) {
+    const tr = document.createElement('tr');
+    tr.innerHTML = '<td colspan="9" style="text-align:center;color:#c0eaff;">No pending students for room allotment</td>';
+    table.appendChild(tr);
+    return;
+  }
+  
+  for (let j = 0; j < window.allotmentStudents.length; j++) {
+    const s = window.allotmentStudents[j];
+    const tr = document.createElement('tr');
+    tr.innerHTML = '<td>' + s.name + '</td><td>' + s.father + '</td><td>' + s.cnic + '</td><td>' + s.phone + '</td><td>' + s.degree + '</td><td>' + s.dep + '</td><td>' + s.major + '</td><td>' + s.cgpa + '</td><td><button class="send-email-btn" onclick="openRoomModal(' + j + ')">Allot Room</button></td>';
+    table.appendChild(tr);
+  }
+};
+
+// ==========================================
+// ROOM MODAL
+// ==========================================
+window.selectedStudentIndex = null;
+
+window.openRoomModal = function(index) {
+  window.selectedStudentIndex = index;
+  document.getElementById('modalStudentName').innerText = window.allotmentStudents[index].name;
+  
+  const select = document.getElementById('availableRoomsSelect');
+  select.innerHTML = "";
+  
+  for (let j = 0; j < window.roomsArr.length; j++) {
+    const r = window.roomsArr[j];
+    if (r.free > 0) {
+      const option = document.createElement('option');
+      option.value = r.no;
+      option.innerText = 'Room ' + r.no + ' (Free: ' + r.free + ')';
+      select.appendChild(option);
+    }
+  }
+  
+  if (select.options.length === 0) {
+    select.innerHTML = '<option>No rooms available</option>';
+  }
+  
+  document.getElementById('roomModal').style.display = "flex";
+};
+
+window.closeRoomModal = function() {
+  document.getElementById('roomModal').style.display = "none";
+};
+
+window.confirmRoom = async function() {
+  const room = document.getElementById('availableRoomsSelect').value;
+  if (!room || room === 'No rooms available') {
+    return alert("No room selected or no rooms available");
+  }
+  
+  try {
+    const student = window.allotmentStudents[window.selectedStudentIndex];
+    
+    const studentRef = doc(db, "students", student.id);
+    await updateDoc(studentRef, {
+      roomNumber: parseInt(room),
+      status: "active"
+    });
+    
+    const hostelDoc = await findHostelDocument();
+    if (hostelDoc) {
+      await updateDoc(hostelDoc.ref, {
+        freeRooms: increment(-1)
+      });
+    }
+    
+    alert('✅ Room ' + room + ' assigned to ' + student.name + '!');
+    
+    await loadDashboardData();
+    await loadAllotmentStudents();
+    
+    closeRoomModal();
+    
+  } catch (error) {
+    console.error("❌ Error assigning room:", error);
+    alert("Error: " + error.message);
+  }
+};
+
+// ==========================================
+// TEST FIREBASE CONNECTION
+// ==========================================
+window.testFirebaseConnection = async function() {
+  console.log("🧪 Testing Firebase Connection...");
+  updateDebugInfo("🧪 Running Firebase diagnostics...");
+  
+  try {
+    // Test 1: Can we connect to Firebase?
+    updateDebugInfo("✅ Step 1: Firebase initialized<br>⏳ Step 2: Checking hostels collection...");
+    
+    // Test 2: Can we read the hostels collection?
+    const hostelsRef = collection(db, "hostels");
+    const snapshot = await getDocs(hostelsRef);
+    
+    updateDebugInfo(`✅ Step 2: Found ${snapshot.size} hostels<br>⏳ Step 3: Listing all hostels...`);
+    
+    // Test 3: List all hostels
+    await listAllHostels();
+    
+    // Test 4: Try to find current hostel
+    updateDebugInfo(`📋 Diagnostic Complete! Check console for details.<br><br>Your hostel code: "<strong>${hostelCode}</strong>"<br>Scroll up to see all available hostels.`);
+    
+  } catch (error) {
+    updateDebugInfo(`❌ Firebase Error: ${error.message}<br><br>Possible issues:<br>1. Firebase rules might be blocking access<br>2. Internet connection issue<br>3. Invalid Firebase config`);
+    console.error("Firebase test failed:", error);
+  }
+};
+
+// ==========================================
+// REFRESH FUNCTION
+// ==========================================
+window.refreshDashboard = async function() {
+  console.log("🔄 Refreshing dashboard...");
+  updateDebugInfo("⏳ Refreshing data...");
+  await loadDashboardData();
+  await loadAllotmentStudents();
+  alert("✅ Dashboard refreshed!");
+};
+
+// ==========================================
+// INITIALIZE
+// ==========================================
+window.addEventListener('load', async () => {
+  console.log("🚀 Initializing admin dashboard...");
+  console.log("📍 Hostel Code from session:", hostelCode);
+  console.log("📍 Admin Name:", adminName);
+  
+  // Auto-run diagnostics on load
+  await loadDashboardData();
+  await loadAllotmentStudents();
+});
+
+</script>
+
+</body>
+</html>

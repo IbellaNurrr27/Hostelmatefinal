@@ -1,0 +1,481 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<title>HostelMate – Student Registration</title>
+
+<link href="https://fonts.googleapis.com/css2?family=Playfair+Display:wght@600;700&family=Inter:wght@400;500&display=swap" rel="stylesheet">
+
+<style>
+*{margin:0;padding:0;box-sizing:border-box}
+body{font-family:'Inter',sans-serif;background:#fff;overflow:auto;}
+.marquee{background:#0d3a80;color:white;padding:6px 0;}
+.marquee marquee{font-size:13px}
+
+/* FORM CARD */
+.form-wrapper{height:auto;display:flex;justify-content:center;align-items:flex-start;padding:16px;}
+.form-card{width:75%;background:rgba(255,255,255,0.7);backdrop-filter:blur(12px);border-radius:26px;padding:32px 40px;box-shadow:0 30px 80px rgba(0,0,0,.2);position:relative;overflow:auto;}
+.header-row{display:flex;align-items:center;gap:12px;margin-bottom:22px;}
+.header-logo{width:46px;height:46px;border-radius:12px;overflow:hidden;}
+.header-logo img{width:100%;height:100%;object-fit:cover;}
+.form-title{font-family:'Playfair Display',serif;font-size:28px;color:#0d3a80;margin-bottom:16px;}
+
+/* FLEX LEFT + IMAGE */
+.form-left-wrapper{display:flex;align-items:flex-start;gap:20px;}
+.form-left{flex:1;display:flex;flex-direction:column;}
+.field{margin-bottom:0;margin-top:12px;}
+label{font-size:13px;margin-bottom:6px;display:block;}
+input, select{width:100%;height:48px;padding:0 14px;font-size:14px;border-radius:14px;border:1px solid #000;background:#fff;transition:.3s;}
+input:hover, select:hover{box-shadow:0 0 15px rgba(13,58,128,.4);transform:scale(1.02);}
+
+/* IMAGE COLUMN */
+.image-column{display:flex;flex-direction:column;justify-content:space-between;width:160px;flex-shrink:0;}
+.image-block{display:flex;flex-direction:column;align-items:center;gap:6px;}
+.image-heading{font-size:14px;font-weight:500;color:#0d3a80;text-align:center;}
+.image-box{width:140px;height:180px;border:2px dashed #0d3a80;border-radius:18px;display:flex;align-items:center;justify-content:center;background:#fff;cursor:pointer;overflow:hidden;position:relative;}
+.image-box span{font-size:12px;color:#0d3a80;text-align:center;display:block;}
+.image-box img{width:100%;height:100%;object-fit:contain;display:none;position:absolute;top:0;left:0;}
+.image-box input{position:absolute;inset:0;opacity:0;cursor:pointer;}
+
+/* DIVIDER */
+.divider{height:2px;background:#0d3a80;margin:28px 0 18px;}
+
+/* EDUCATION */
+.grid-2{display:grid;grid-template-columns:repeat(2,1fr);gap:20px;}
+
+/* DOCUMENTS */
+.docs{display:grid;grid-template-columns:1fr 1fr;gap:20px;}
+.doc-box{border:2px dashed #0d3a80;border-radius:16px;padding:20px;text-align:center;cursor:pointer;}
+.doc-box input{display:none}
+
+/* REGISTER BUTTON */
+.register-btn{margin-top:30px;width:100%;height:52px;font-size:16px;font-weight:bold;background:linear-gradient(135deg,#0d6efd,#003f9e);color:white;border:none;border-radius:18px;cursor:pointer;transition:.3s;}
+.register-btn:hover{box-shadow:0 0 25px rgba(13,110,253,.7);transform:scale(1.03);}
+
+/* MODAL */
+body.modal-open .form-card{filter:blur(6px);pointer-events:none;}
+#confirmationModal{position:fixed;inset:0;background:rgba(0,0,0,0.6);display:flex;align-items:center;justify-content:center;z-index:9999;}
+.modal-content{background:#fff;padding:30px 40px;border-radius:18px;width:400px;text-align:center;}
+.modal-content h2{margin-bottom:20px;font-size:18px;color:#0d3a80;}
+.options{display:flex;justify-content:space-between;gap:10px;}
+.options button{flex:1;padding:10px 0;border:none;border-radius:12px;background:#0d6efd;color:white;font-weight:bold;cursor:pointer;transition:.3s;}
+.options button:hover{background:#003f9e;}
+.code-inputs{display:flex;justify-content:center;gap:10px;margin:20px 0;}
+.code-inputs input{width:50px;height:50px;text-align:center;font-size:24px;border:2px solid #0d3a80;border-radius:8px;}
+.resend{font-size:14px;}
+
+/* SUCCESS ANIMATION */
+.success-wrapper{display:none;flex-direction:column;align-items:center;justify-content:center;gap:20px;}
+.circle-tick{position:relative;width:100px;height:100px;border-radius:50%;border:4px solid #0d6efd;display:flex;align-items:center;justify-content:center;animation:drawCircle 1s forwards;}
+.tick{position:absolute;width:40px;height:20px;border-left:4px solid #0d6efd;border-bottom:4px solid #0d6efd;transform:rotate(-45deg) scale(0);animation:showTick 0.5s forwards 1s;}
+@keyframes drawCircle{from{stroke-dashoffset:100;}to{stroke-dashoffset:0;}}
+@keyframes showTick{from{transform:rotate(-45deg) scale(0);}to{transform:rotate(-45deg) scale(1);}}
+
+.success-text{font-size:16px;color:#0d3a80;text-align:center;}
+.success-btn{padding:12px 20px;border:none;border-radius:16px;background:#0d6efd;color:white;cursor:pointer;transition:.3s;}
+.success-btn:hover{background:#003f9e;box-shadow:0 0 15px #0d6efd;}
+</style>
+</head>
+<body>
+<div class="marquee">
+  <marquee scrollamount="6">Must fill all the fields and register yourself at HostelMate for your hostel updates</marquee>
+</div>
+
+<div class="form-wrapper">
+  <form class="form-card" id="studentForm">
+
+    <!-- HEADER -->
+    <div class="header-row">
+      <div class="header-logo">
+        <img src="https://i.ibb.co/HL3qVtZY/uet-lahore-Logo-PNG-Vector-CDR-Free-Download.jpg">
+      </div>
+      <div class="form-title">Student Registration</div>
+    </div>
+
+    <!-- FORM LEFT + IMAGE -->
+    <div class="form-left-wrapper">
+      <div class="form-left">
+        <div class="field"><label>Name</label><input id="name" required></div>
+        <div class="field"><label>Father Name</label><input id="fatherName" required></div>
+        <div class="field"><label>Roll No</label><input id="rollNo" placeholder="YYYY-MAJOR-XXX" required></div>
+        <div class="field"><label>Phone Number</label><input id="phone" type="tel" placeholder="03XXXXXXXXX" required></div>
+        <div class="field"><label>CNIC</label><input id="cnic" placeholder="XXXXX-XXXXXXX-X" required></div>
+        <div class="field"><label>Gmail</label><input id="email" type="email" placeholder="example@gmail.com" required></div>
+
+        <div class="divider"></div><h3>Account Security</h3>
+        <div class="grid-2">
+          <div class="field"><label>Password</label><input id="password" type="password" placeholder="Enter Password" required></div>
+          <div class="field"><label>Confirm Password</label><input id="confirmPassword" type="password" placeholder="Confirm Password" required></div>
+        </div>
+      </div>
+
+      <div class="image-column">
+        <div class="image-block">
+          <div class="image-heading">Add Your Image</div>
+          <label class="image-box">
+            <input type="file" accept="image/*" id="studentImage" required>
+            <span>Attach<br>Student Image</span>
+            <img id="studentPreview">
+          </label>
+        </div>
+        <div class="image-block">
+          <div class="image-heading">Add Your ID Card</div>
+          <label class="image-box">
+            <input type="file" accept="image/*" id="idImage" required>
+            <span>Attach<br>ID Card Photo</span>
+            <img id="idPreview">
+          </label>
+        </div>
+      </div>
+    </div>
+
+    <!-- EDUCATION -->
+    <div class="divider"></div><h3>Education Related</h3>
+    <div class="grid-2">
+      <div><label>Degree Type</label><select id="degreeType" required><option value="">Select</option><option>BS</option><option>MS</option><option>PhD</option></select></div>
+      <div><label>Department</label><input id="department" required></div>
+      <div><label>Semester</label><input id="semester" required></div>
+      <div><label>Major</label><input id="major" required></div>
+    </div>
+    <div class="field" style="margin-top:18px"><label>CGPA</label><input id="cgpa" required></div>
+
+    <!-- HOSTEL SELECTION -->
+    <div class="divider"></div><h3>Hostel Selection</h3>
+    <div class="grid-2">
+      <div>
+        <label>Gender</label>
+        <select id="gender" required onchange="updateHostelOptions()">
+          <option value="">Select Gender</option>
+          <option value="Female">Female</option>
+          <option value="Male">Male</option>
+          <option value="Other">Other</option>
+        </select>
+      </div>
+      <div>
+        <label>Select Hostel</label>
+        <select id="hostel" required disabled>
+          <option value="">First select gender</option>
+        </select>
+      </div>
+    </div>
+
+    <!-- DOCUMENTS -->
+    <div class="divider"></div><h3>Documents Attached</h3>
+    <div class="docs">
+      <label class="doc-box"><input type="file" id="studentCard" required>Attach Student Card</label>
+      <label class="doc-box"><input type="file" id="semesterScript">First Semester Script (Optional)</label>
+    </div>
+
+    <button type="submit" class="register-btn">DONE</button>
+
+  </form>
+</div>
+
+<!-- MODAL -->
+<div id="confirmationModal" style="display:none;">
+  <div class="modal-content">
+    <div id="modalStep1">
+      <h2>Where would you like to get your confirmation code?</h2>
+      <div class="options">
+        <button type="button" class="confirm-option" data-type="message">Via Message</button>
+        <button type="button" class="confirm-option" data-type="gmail">Via Gmail</button>
+        <button type="button" class="confirm-option" data-type="both">Both</button>
+      </div>
+    </div>
+
+    <div id="modalStep2" style="display:none;">
+      <h2 id="sentMessage"></h2>
+      <div class="code-inputs">
+        <input maxlength="1"><input maxlength="1"><input maxlength="1"><input maxlength="1">
+      </div>
+      <div class="resend">Didn't receive code? <span id="resendCode" style="cursor:pointer;color:#0d3a80">Send again</span></div>
+    </div>
+
+    <div id="successStep" class="success-wrapper">
+      <div class="circle-tick"><div class="tick"></div></div>
+      <div class="success-text">Confirmation received! You're registered!</div>
+      <button type="button" class="success-btn" onclick="goToLogin()">Go Back to Login</button>
+    </div>
+  </div>
+</div>
+
+<!-- FIREBASE SCRIPTS -->
+<script type="module">
+  // Import Firebase
+  import { initializeApp } from "https://www.gstatic.com/firebasejs/12.7.0/firebase-app.js";
+  import { getFirestore, doc, setDoc, getDoc, updateDoc, increment, collection, query, where, getDocs } from "https://www.gstatic.com/firebasejs/12.7.0/firebase-firestore.js";
+
+  // Your Firebase configuration
+  const firebaseConfig = {
+    apiKey: "AIzaSyBAeUoj-jOOv1dHFf3r98K44GeGhJnE1T8",
+    authDomain: "hostelmate-na2715.firebaseapp.com",
+    projectId: "hostelmate-na2715",
+    storageBucket: "hostelmate-na2715.firebasestorage.app",
+    messagingSenderId: "322572880442",
+    appId: "1:322572880442:web:87c7273991016f80e2c303",
+    measurementId: "G-RFSWJL3ZDM"
+  };
+
+  // Initialize Firebase
+  const app = initializeApp(firebaseConfig);
+  const db = getFirestore(app);
+
+  // Store form data globally for later submission
+  let formData = {};
+
+  // HOSTEL OPTIONS - EXACT NAMES MATCHING JSON DATABASE
+  const hostelOptions = {
+    Female: [
+      "Khadijah Hall",
+      "C-Hall",
+      "New Girls Hostel",
+      "Umar Hall",
+      "Al-Zohra Hall"
+    ],
+    Male: [
+      "Sir Syed Hall",
+      "Allama Iqbal Hall",
+      "S. Mahmood Gaznavi Hall",
+      "Zubaid Hall",
+      "Muhammad Bin Qasim Hall",
+      "Abdul Sattar Edhi Hall",
+      "Khalid Hall",
+      "Tariq Hall"
+    ],
+    Other: [
+      "Bachelor Hall",
+      "Faculty Hostels"
+    ]
+  };
+
+  // UPDATE HOSTEL OPTIONS BASED ON GENDER
+  window.updateHostelOptions = function(){
+    const gender = document.getElementById('gender').value;
+    const hostelSelect = document.getElementById('hostel');
+    
+    hostelSelect.innerHTML = '<option value="">Select Hostel</option>';
+    
+    if(gender && hostelOptions[gender]){
+      hostelSelect.disabled = false;
+      hostelOptions[gender].forEach(hostel => {
+        const option = document.createElement('option');
+        option.value = hostel;
+        option.textContent = hostel;
+        hostelSelect.appendChild(option);
+      });
+    } else {
+      hostelSelect.disabled = true;
+      hostelSelect.innerHTML = '<option value="">First select gender</option>';
+    }
+  }
+
+  // AUTO ROOM ALLOCATION FUNCTION
+  async function allocateRoom(hostelName) {
+    try {
+      // Get hostel document
+      const hostelRef = doc(db, "hostels", hostelName);
+      const hostelSnap = await getDoc(hostelRef);
+      
+      if (!hostelSnap.exists()) {
+        throw new Error(`Hostel "${hostelName}" not found in database. Please contact admin.`);
+      }
+      
+      const hostelData = hostelSnap.data();
+      
+      // Check if hostel is full
+      if (hostelData.freeRooms <= 0) {
+        throw new Error(`Sorry! ${hostelName} is currently full. No rooms available.`);
+      }
+      
+      // Get all students in this hostel
+      const studentsQuery = query(
+        collection(db, "students"),
+        where("hostel", "==", hostelName)
+      );
+      const studentsSnap = await getDocs(studentsQuery);
+      
+      // Calculate occupied rooms
+      const roomOccupancy = {};
+      studentsSnap.forEach((docSnap) => {
+        const studentData = docSnap.data();
+        if (studentData.roomNumber) {
+          if (!roomOccupancy[studentData.roomNumber]) {
+            roomOccupancy[studentData.roomNumber] = 0;
+          }
+          roomOccupancy[studentData.roomNumber]++;
+        }
+      });
+      
+      // Find first available room
+      const totalRooms = hostelData.totalRooms;
+      const roomCapacity = hostelData.roomCapacity;
+      
+      for (let roomNum = 1; roomNum <= totalRooms; roomNum++) {
+        const currentOccupancy = roomOccupancy[roomNum] || 0;
+        if (currentOccupancy < roomCapacity) {
+          return roomNum; // Return available room number
+        }
+      }
+      
+      throw new Error("No available rooms found");
+      
+    } catch (error) {
+      throw error;
+    }
+  }
+
+  // IMAGE PREVIEW
+  function previewImage(inputId, imgId){
+    const input = document.getElementById(inputId);
+    const img = document.getElementById(imgId);
+    const box = img.parentElement;
+
+    input.addEventListener("change", () => {
+      const file = input.files[0];
+      if(file){
+        const reader = new FileReader();
+        reader.onload = e => {
+          img.src = e.target.result;
+          img.style.display = "block";
+          box.querySelector("span").style.display = "none";
+        }
+        reader.readAsDataURL(file);
+      }
+    });
+  }
+  previewImage("studentImage", "studentPreview");
+  previewImage("idImage", "idPreview");
+
+  // FORM SUBMIT - COLLECT DATA AND OPEN MODAL
+  document.getElementById('studentForm').addEventListener('submit', async function(e){
+    e.preventDefault();
+
+    // Check password match
+    const password = document.getElementById('password').value;
+    const confirmPassword = document.getElementById('confirmPassword').value;
+    
+    if(password !== confirmPassword){
+      alert('Passwords do not match!');
+      return;
+    }
+
+    // Check if Roll No already exists
+    const rollNo = document.getElementById('rollNo').value.trim();
+    const studentRef = doc(db, "students", rollNo);
+    const studentSnap = await getDoc(studentRef);
+    
+    if(studentSnap.exists()){
+      alert('This Roll No is already registered!');
+      return;
+    }
+
+    // Collect form data
+    formData = {
+      name: document.getElementById('name').value,
+      fatherName: document.getElementById('fatherName').value,
+      rollNo: rollNo,
+      phone: document.getElementById('phone').value,
+      cnic: document.getElementById('cnic').value,
+      email: document.getElementById('email').value,
+      password: password,
+      degreeType: document.getElementById('degreeType').value,
+      department: document.getElementById('department').value,
+      semester: document.getElementById('semester').value,
+      major: document.getElementById('major').value,
+      cgpa: document.getElementById('cgpa').value,
+      gender: document.getElementById('gender').value,
+      hostel: document.getElementById('hostel').value,
+      registrationDate: new Date().toISOString(),
+      status: 'pending'
+    };
+
+    // Open confirmation modal
+    document.getElementById('confirmationModal').style.display = 'flex';
+    document.body.classList.add('modal-open');
+  });
+
+  // CONFIRMATION METHOD
+  document.querySelectorAll('.confirm-option').forEach(btn => {
+    btn.addEventListener('click', function(){
+      const type = this.dataset.type;
+      document.getElementById('modalStep1').style.display = 'none';
+      document.getElementById('modalStep2').style.display = 'block';
+      const msgEl = document.getElementById('sentMessage');
+      msgEl.textContent = 'Sending code...';
+      setTimeout(() => {
+        let viaText = '';
+        if(type === 'message') viaText = 'your phone';
+        else if(type === 'gmail') viaText = 'your email';
+        else viaText = 'your phone and email';
+        msgEl.textContent = `We've sent you a 4-digit code via ${viaText}`;
+      }, 2000);
+    });
+  });
+
+  // RESEND BUTTON
+  document.getElementById('resendCode').addEventListener('click', function(){
+    alert('Code resent!');
+  });
+
+  // OTP INPUT AUTOFOCUS
+  const codeInputs = document.querySelectorAll('.code-inputs input');
+  codeInputs.forEach((input, idx) => {
+    input.addEventListener('input', function(){
+      if(this.value.length === 1 && idx < codeInputs.length - 1) codeInputs[idx + 1].focus();
+      checkCode();
+    });
+  });
+
+  // SIMULATE OTP CHECK WITH AUTO ROOM ALLOCATION
+  async function checkCode(){
+    const val = Array.from(codeInputs).map(i => i.value).join('');
+    if(val === '1234'){
+      try {
+        // Allocate room automatically
+        const hostelName = formData.hostel;
+        const roomNumber = await allocateRoom(hostelName);
+        
+        // Add room number to form data
+        formData.roomNumber = roomNumber;
+        
+        // Save student with Roll No as document ID
+        const rollNo = formData.rollNo;
+        await setDoc(doc(db, "students", rollNo), formData);
+        
+        // Update hostel statistics
+        const hostelRef = doc(db, "hostels", hostelName);
+        await updateDoc(hostelRef, {
+          totalStudents: increment(1),
+          freeRooms: increment(-1)
+        });
+        
+        console.log(`✅ Student ${rollNo} registered successfully in ${hostelName}, Room ${roomNumber}`);
+        
+        // Show success
+        setTimeout(() => showSuccess(), 300);
+      } catch (error) {
+        console.error("❌ Registration Error:", error);
+        alert(error.message || "Registration failed. Please try again.");
+        
+        // Reset OTP inputs
+        codeInputs.forEach(input => input.value = '');
+        codeInputs[0].focus();
+      }
+    }
+  }
+  window.checkCode = checkCode;
+
+  // SHOW SUCCESS
+  function showSuccess(){
+    document.getElementById('modalStep2').style.display = 'none';
+    document.getElementById('successStep').style.display = 'flex';
+  }
+  window.showSuccess = showSuccess;
+
+  // BACK TO LOGIN
+  window.goToLogin = function(){
+    window.location.href = "index.html";
+  }
+</script>
+</body>
+</html>

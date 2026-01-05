@@ -1,0 +1,523 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Firebase Data Importer - HostelMate</title>
+<style>
+@import url('https://fonts.googleapis.com/css2?family=Inter:wght@400;600;700&display=swap');
+
+body {
+  font-family: 'Inter', sans-serif;
+  background: linear-gradient(135deg, #0b1e3c, #1a3a5c);
+  color: #fff;
+  padding: 40px;
+  min-height: 100vh;
+}
+
+.container {
+  max-width: 900px;
+  margin: 0 auto;
+  background: rgba(255,255,255,0.1);
+  backdrop-filter: blur(10px);
+  border-radius: 20px;
+  padding: 40px;
+  box-shadow: 0 10px 40px rgba(0,0,0,0.3);
+}
+
+h1 {
+  text-align: center;
+  color: #0ff;
+  margin-bottom: 10px;
+  font-size: 36px;
+}
+
+.subtitle {
+  text-align: center;
+  color: #c0eaff;
+  margin-bottom: 40px;
+  font-size: 14px;
+}
+
+.section {
+  background: rgba(255,255,255,0.05);
+  border-radius: 15px;
+  padding: 25px;
+  margin-bottom: 25px;
+  border: 1px solid rgba(0,255,255,0.2);
+}
+
+.section h2 {
+  color: #0ff;
+  margin-bottom: 15px;
+  font-size: 24px;
+}
+
+.btn {
+  background: linear-gradient(135deg, #0ff, #00bfff);
+  color: #000;
+  border: none;
+  padding: 15px 30px;
+  border-radius: 12px;
+  font-weight: bold;
+  cursor: pointer;
+  transition: 0.3s;
+  width: 100%;
+  font-size: 16px;
+  margin-top: 10px;
+}
+
+.btn:hover {
+  transform: translateY(-2px);
+  box-shadow: 0 0 20px #0ff, 0 0 40px #0ff;
+}
+
+.btn:disabled {
+  opacity: 0.5;
+  cursor: not-allowed;
+}
+
+.btn.danger {
+  background: linear-gradient(135deg, #ff758c, #ff7eb3);
+}
+
+.log {
+  background: rgba(0,0,0,0.3);
+  border-radius: 10px;
+  padding: 20px;
+  max-height: 400px;
+  overflow-y: auto;
+  font-family: 'Courier New', monospace;
+  font-size: 13px;
+  margin-top: 20px;
+}
+
+.log-entry {
+  padding: 5px;
+  margin-bottom: 5px;
+  border-left: 3px solid #0ff;
+  padding-left: 10px;
+}
+
+.log-entry.success { border-left-color: #00ff00; color: #00ff00; }
+.log-entry.error { border-left-color: #ff0000; color: #ff0000; }
+.log-entry.info { border-left-color: #0ff; color: #0ff; }
+.log-entry.warning { border-left-color: #ffa500; color: #ffa500; }
+
+.stats {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
+  gap: 15px;
+  margin-top: 20px;
+}
+
+.stat-card {
+  background: rgba(0,255,255,0.1);
+  border-radius: 12px;
+  padding: 20px;
+  text-align: center;
+  border: 1px solid rgba(0,255,255,0.3);
+}
+
+.stat-card h3 {
+  color: #0ff;
+  font-size: 32px;
+  margin: 0;
+}
+
+.stat-card p {
+  color: #c0eaff;
+  font-size: 14px;
+  margin: 5px 0 0 0;
+}
+
+.hostel-list {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(150px, 1fr));
+  gap: 10px;
+  margin-top: 15px;
+}
+
+.hostel-chip {
+  background: rgba(0,255,255,0.2);
+  border: 1px solid #0ff;
+  border-radius: 8px;
+  padding: 8px;
+  text-align: center;
+  font-size: 12px;
+  color: #0ff;
+}
+</style>
+</head>
+<body>
+
+<div class="container">
+  <h1>🔥 Firebase Data Importer</h1>
+  <p class="subtitle">Import sample admins and students for HostelMate</p>
+
+  <div class="section">
+    <h2>📊 Current Database Status</h2>
+    <div class="stats">
+      <div class="stat-card">
+        <h3 id="hostelCount">-</h3>
+        <p>Hostels</p>
+      </div>
+      <div class="stat-card">
+        <h3 id="adminCount">-</h3>
+        <p>Admins</p>
+      </div>
+      <div class="stat-card">
+        <h3 id="studentCount">-</h3>
+        <p>Students</p>
+      </div>
+    </div>
+    <button class="btn" onclick="checkStatus()">🔄 Refresh Status</button>
+  </div>
+
+  <div class="section">
+    <h2>🏢 Available Hostels</h2>
+    <div id="hostelList" class="hostel-list">
+      <p style="color: #c0eaff;">Click "Refresh Status" to load hostels...</p>
+    </div>
+  </div>
+
+  <div class="section">
+    <h2>👤 Import Admins</h2>
+    <p style="color: #c0eaff; font-size: 14px;">This will create 1 admin for each hostel with Pakistani names.</p>
+    <button class="btn" onclick="importAdmins()" id="importAdminsBtn">📥 Import Admins (1 per hostel)</button>
+  </div>
+
+  <div class="section">
+    <h2>👥 Import Students</h2>
+    <p style="color: #c0eaff; font-size: 14px;">This will create 2 students for each hostel with Pakistani names.</p>
+    <button class="btn" onclick="importStudents()" id="importStudentsBtn">📥 Import Students (2 per hostel)</button>
+  </div>
+
+  <div class="section">
+    <h2>🗑️ Clear Database</h2>
+    <p style="color: #ff758c; font-size: 14px;">⚠️ Warning: This will delete ALL admins and students!</p>
+    <button class="btn danger" onclick="clearDatabase()" id="clearBtn">🗑️ Clear All Data</button>
+  </div>
+
+  <div class="section">
+    <h2>📝 Activity Log</h2>
+    <div class="log" id="logContainer">
+      <div class="log-entry info">Ready to import data...</div>
+    </div>
+  </div>
+</div>
+
+<script type="module">
+import { initializeApp } from "https://www.gstatic.com/firebasejs/12.7.0/firebase-app.js";
+import { getFirestore, collection, getDocs, doc, setDoc, deleteDoc } from "https://www.gstatic.com/firebasejs/12.7.0/firebase-firestore.js";
+
+const firebaseConfig = {
+  apiKey: "AIzaSyBAeUoj-jOOv1dHFf3r98K44GeGhJnE1T8",
+  authDomain: "hostelmate-na2715.firebaseapp.com",
+  projectId: "hostelmate-na2715",
+  storageBucket: "hostelmate-na2715.firebasestorage.app",
+  messagingSenderId: "322572880442",
+  appId: "1:322572880442:web:87c7273991016f80e2c303",
+  measurementId: "G-RFSWJL3ZDM"
+};
+
+const app = initializeApp(firebaseConfig);
+const db = getFirestore(app);
+
+// Pakistani Names Database
+const pakistaniMaleNames = [
+  "Muhammad Ali", "Ahmed Hassan", "Usman Khan", "Bilal Ahmed", "Faisal Mahmood",
+  "Hassan Ali", "Imran Shah", "Kamran Malik", "Nabeel Ahmed", "Adnan Siddiqui",
+  "Arslan Javed", "Daniyal Khan", "Fahad Iqbal", "Hamza Yousaf", "Junaid Akram",
+  "Kashif Mehmood", "Majid Ali", "Noman Shah", "Owais Raza", "Qamar Abbas",
+  "Raza Hussain", "Saad Qureshi", "Talha Anwar", "Waqas Ahmed", "Yasir Nawaz",
+  "Zain Malik", "Abdullah Khan", "Basit Ali", "Dawood Ibrahim", "Ejaz Ahmed"
+];
+
+const pakistaniFemaleNames = [
+  "Ayesha Khan", "Fatima Malik", "Hira Ahmed", "Zainab Ali", "Sana Yousaf",
+  "Maryam Hassan", "Anum Shah", "Bushra Iqbal", "Farwa Siddiqui", "Hafsa Raza",
+  "Iqra Abbas", "Khadija Mehmood", "Laiba Nawaz", "Mahnoor Akram", "Nabiha Khan",
+  "Palwasha Qureshi", "Rabia Anwar", "Saira Ahmed", "Tehreem Yousaf", "Urooj Hassan"
+];
+
+const pakistaniLastNames = [
+  "Khan", "Ali", "Ahmed", "Hassan", "Malik", "Shah", "Iqbal", "Siddiqui", 
+  "Raza", "Abbas", "Mehmood", "Nawaz", "Akram", "Qureshi", "Anwar", "Yousaf"
+];
+
+const departments = ["Computer Science", "Electrical Engineering", "Mechanical Engineering", "Civil Engineering", "Software Engineering", "Chemical Engineering"];
+const majors = ["AI", "Networks", "Software", "Power Systems", "Thermodynamics", "Structures"];
+
+// Global variables
+window.hostels = [];
+
+// Logging function
+function log(message, type = 'info') {
+  const logContainer = document.getElementById('logContainer');
+  const entry = document.createElement('div');
+  entry.className = `log-entry ${type}`;
+  const timestamp = new Date().toLocaleTimeString();
+  entry.textContent = `[${timestamp}] ${message}`;
+  logContainer.appendChild(entry);
+  logContainer.scrollTop = logContainer.scrollHeight;
+  console.log(`[${type.toUpperCase()}]`, message);
+}
+
+// Check database status
+window.checkStatus = async function() {
+  log("Checking database status...", "info");
+  
+  try {
+    // Get hostels
+    const hostelsSnap = await getDocs(collection(db, "hostels"));
+    window.hostels = [];
+    hostelsSnap.forEach(doc => {
+      window.hostels.push({ id: doc.id, ...doc.data() });
+    });
+    
+    // Get admins
+    const adminsSnap = await getDocs(collection(db, "admins"));
+    
+    // Get students
+    const studentsSnap = await getDocs(collection(db, "students"));
+    
+    // Update UI
+    document.getElementById('hostelCount').textContent = hostelsSnap.size;
+    document.getElementById('adminCount').textContent = adminsSnap.size;
+    document.getElementById('studentCount').textContent = studentsSnap.size;
+    
+    // Display hostels
+    const hostelListDiv = document.getElementById('hostelList');
+    hostelListDiv.innerHTML = '';
+    
+    if (window.hostels.length === 0) {
+      hostelListDiv.innerHTML = '<p style="color: #ff758c;">No hostels found! Please create hostels first.</p>';
+    } else {
+      window.hostels.forEach(hostel => {
+        const chip = document.createElement('div');
+        chip.className = 'hostel-chip';
+        chip.textContent = hostel.id;
+        hostelListDiv.appendChild(chip);
+      });
+    }
+    
+    log(`Found ${hostelsSnap.size} hostels, ${adminsSnap.size} admins, ${studentsSnap.size} students`, "success");
+    
+  } catch (error) {
+    log(`Error: ${error.message}`, "error");
+  }
+};
+
+// Generate random CNIC
+function generateCNIC() {
+  const part1 = Math.floor(10000 + Math.random() * 90000);
+  const part2 = Math.floor(1000000 + Math.random() * 9000000);
+  const part3 = Math.floor(1 + Math.random() * 9);
+  return `${part1}-${part2}-${part3}`;
+}
+
+// Generate random phone
+function generatePhone() {
+  return `03${Math.floor(100000000 + Math.random() * 900000000)}`;
+}
+
+// Generate email from name
+function generateEmail(name) {
+  return name.toLowerCase().replace(/\s+/g, '.') + '@uet.edu.pk';
+}
+
+// Import Admins
+window.importAdmins = async function() {
+  if (window.hostels.length === 0) {
+    log("No hostels found! Please create hostels first.", "error");
+    alert("Please create hostels first!");
+    return;
+  }
+  
+  const btn = document.getElementById('importAdminsBtn');
+  btn.disabled = true;
+  btn.textContent = "⏳ Importing...";
+  
+  log("Starting admin import...", "info");
+  let successCount = 0;
+  let errorCount = 0;
+  
+  try {
+    for (let i = 0; i < window.hostels.length; i++) {
+      const hostel = window.hostels[i];
+      
+      // Randomly select gender
+      const isMale = Math.random() > 0.5;
+      const namesList = isMale ? pakistaniMaleNames : pakistaniFemaleNames;
+      const fullName = namesList[Math.floor(Math.random() * namesList.length)];
+      
+      const adminData = {
+        fullName: fullName,
+        hostelCode: hostel.id,
+        email: generateEmail(fullName),
+        password: "admin123",
+        phone: generatePhone(),
+        cnic: generateCNIC(),
+        designation: "Hostel Warden",
+        createdAt: new Date().toISOString()
+      };
+      
+      try {
+        const adminId = `admin_${hostel.id.toLowerCase().replace(/\s+/g, '_')}`;
+        await setDoc(doc(db, "admins", adminId), adminData);
+        log(`✅ Created admin for ${hostel.id}: ${fullName}`, "success");
+        successCount++;
+      } catch (error) {
+        log(`❌ Failed to create admin for ${hostel.id}: ${error.message}`, "error");
+        errorCount++;
+      }
+      
+      // Small delay to avoid overwhelming Firebase
+      await new Promise(resolve => setTimeout(resolve, 100));
+    }
+    
+    log(`✅ Import complete! Success: ${successCount}, Errors: ${errorCount}`, successCount > 0 ? "success" : "error");
+    alert(`Admins imported!\n✅ Success: ${successCount}\n❌ Errors: ${errorCount}`);
+    
+  } catch (error) {
+    log(`❌ Import failed: ${error.message}`, "error");
+  } finally {
+    btn.disabled = false;
+    btn.textContent = "📥 Import Admins (1 per hostel)";
+    checkStatus();
+  }
+};
+
+// Import Students
+window.importStudents = async function() {
+  if (window.hostels.length === 0) {
+    log("No hostels found! Please create hostels first.", "error");
+    alert("Please create hostels first!");
+    return;
+  }
+  
+  const btn = document.getElementById('importStudentsBtn');
+  btn.disabled = true;
+  btn.textContent = "⏳ Importing...";
+  
+  log("Starting student import...", "info");
+  let successCount = 0;
+  let errorCount = 0;
+  
+  try {
+    for (let i = 0; i < window.hostels.length; i++) {
+      const hostel = window.hostels[i];
+      
+      // Create 2 students per hostel
+      for (let j = 0; j < 2; j++) {
+        // Randomly select gender
+        const isMale = Math.random() > 0.5;
+        const namesList = isMale ? pakistaniMaleNames : pakistaniFemaleNames;
+        const fullName = namesList[Math.floor(Math.random() * namesList.length)];
+        
+        // Generate father's name
+        const fatherName = pakistaniMaleNames[Math.floor(Math.random() * pakistaniMaleNames.length)];
+        
+        // Generate roll number (year-dept-number)
+        const year = 2024;
+        const deptCode = ["CS", "EE", "ME", "CE", "SE", "CH"][Math.floor(Math.random() * 6)];
+        const rollNum = String(Math.floor(1 + Math.random() * 999)).padStart(3, '0');
+        const rollNo = `${year}-${deptCode}-${rollNum}`;
+        
+        const studentData = {
+          name: fullName,
+          fatherName: fatherName,
+          rollNo: rollNo,
+          email: generateEmail(fullName),
+          password: "student123",
+          phone: generatePhone(),
+          cnic: generateCNIC(),
+          hostel: hostel.id,
+          status: "active",
+          roomNumber: Math.floor(1 + Math.random() * (hostel.totalRooms || 50)),
+          degreeType: ["BS", "MS", "PhD"][Math.floor(Math.random() * 3)],
+          department: departments[Math.floor(Math.random() * departments.length)],
+          major: majors[Math.floor(Math.random() * majors.length)],
+          cgpa: (3.0 + Math.random() * 1.0).toFixed(2),
+          semester: Math.floor(1 + Math.random() * 8),
+          createdAt: new Date().toISOString()
+        };
+        
+        try {
+          const studentId = `student_${rollNo.replace(/-/g, '_').toLowerCase()}`;
+          await setDoc(doc(db, "students", studentId), studentData);
+          log(`✅ Created student for ${hostel.id}: ${fullName} (${rollNo})`, "success");
+          successCount++;
+        } catch (error) {
+          log(`❌ Failed to create student: ${error.message}`, "error");
+          errorCount++;
+        }
+        
+        // Small delay
+        await new Promise(resolve => setTimeout(resolve, 100));
+      }
+    }
+    
+    log(`✅ Import complete! Success: ${successCount}, Errors: ${errorCount}`, successCount > 0 ? "success" : "error");
+    alert(`Students imported!\n✅ Success: ${successCount}\n❌ Errors: ${errorCount}`);
+    
+  } catch (error) {
+    log(`❌ Import failed: ${error.message}`, "error");
+  } finally {
+    btn.disabled = false;
+    btn.textContent = "📥 Import Students (2 per hostel)";
+    checkStatus();
+  }
+};
+
+// Clear Database
+window.clearDatabase = async function() {
+  const confirm = prompt("⚠️ This will DELETE ALL admins and students!\nType 'DELETE' to confirm:");
+  
+  if (confirm !== 'DELETE') {
+    log("Database clear cancelled", "warning");
+    return;
+  }
+  
+  const btn = document.getElementById('clearBtn');
+  btn.disabled = true;
+  btn.textContent = "⏳ Clearing...";
+  
+  log("Starting database clear...", "warning");
+  let deletedAdmins = 0;
+  let deletedStudents = 0;
+  
+  try {
+    // Delete all admins
+    const adminsSnap = await getDocs(collection(db, "admins"));
+    for (const docSnap of adminsSnap.docs) {
+      await deleteDoc(doc(db, "admins", docSnap.id));
+      deletedAdmins++;
+    }
+    
+    // Delete all students
+    const studentsSnap = await getDocs(collection(db, "students"));
+    for (const docSnap of studentsSnap.docs) {
+      await deleteDoc(doc(db, "students", docSnap.id));
+      deletedStudents++;
+    }
+    
+    log(`✅ Deleted ${deletedAdmins} admins and ${deletedStudents} students`, "success");
+    alert(`Database cleared!\n🗑️ Admins: ${deletedAdmins}\n🗑️ Students: ${deletedStudents}`);
+    
+  } catch (error) {
+    log(`❌ Clear failed: ${error.message}`, "error");
+  } finally {
+    btn.disabled = false;
+    btn.textContent = "🗑️ Clear All Data";
+    checkStatus();
+  }
+};
+
+// Initial load
+checkStatus();
+</script>
+
+</body>
+</html>
